@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    
+    <linearGradient id="barGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#2563eb" />
+    </linearGradient>
+    
+    <linearGradient id="maskGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f43f5e" />
+      <stop offset="100%" stop-color="#e11d48" />
+    </linearGradient>
+    
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <g>
+    <rect x="116" y="240" width="48" height="152" rx="12" fill="url(#barGrad)" />
+    <rect x="196" y="140" width="48" height="252" rx="12" fill="url(#barGrad)" />
+    <rect x="276" y="190" width="48" height="202" rx="12" fill="url(#barGrad)" />
+    <rect x="356" y="100" width="48" height="292" rx="12" fill="url(#barGrad)" />
+  </g>
+
+  <rect x="76" y="220" width="360" height="72" rx="16" fill="url(#maskGrad)" filter="url(#shadow)" />
+
+  <g stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 216 250 Q 256 270 296 250" />
+    <line x1="256" y1="261" x2="256" y2="276" />
+    <line x1="230" y1="257" x2="220" y2="269" />
+    <line x1="282" y1="257" x2="292" y2="269" />
+  </g>
+</svg>

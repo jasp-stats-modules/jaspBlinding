@@ -10,7 +10,7 @@ Description {
     maintainer  : "JASP Team <info@jasp-stats.org>"
     website     : "https://jasp-stats.org"
     license     : "GPL (>= 2)"
-    icon        : "exampleIcon.svg"
+    icon        : "blinding.svg"
     requiresData: true
     preloadData : true
 

@@ -55,11 +55,3 @@ The results table shows a preview of the blinded data (limited to the number of 
 - Dutilh, G., Sarafoglou, A., & Wagenmakers, E.-J. (2019). Flexible yet fair: Blinding analyses in experimental psychology. *Synthese*.
 
 The module wraps the R package [**vazul**](https://cran.r-project.org/package=vazul) (Nagy, Kovács & Sarafoglou).
-
-## Development
-
-1. Fork and clone this repository.
-2. Open JASP and add it as a development module (*Preferences → Advanced → Developer mode* → enable *renv* → set *libpath* → module name `jaspBlinding`; then `+` → *Install Developer Module*).
-3. Rebuild with `R CMD INSTALL . --preclean --no-multiarch --with-keep.source` and refresh JASP after each rebuild.
-
-Full design notes are in [`docs/IMPLEMENTATION-PLAN.md`](docs/IMPLEMENTATION-PLAN.md).

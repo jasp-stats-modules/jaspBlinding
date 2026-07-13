@@ -1,19 +1,18 @@
-Package: jaspModuleTemplate
-Type: Package 
-Title: A module for JASP
-Version: 0.1.2
-Date: 2020-10-15
+Package: jaspBlinding
+Type: Package
+Title: Analysis Blinding for JASP
+Version: 0.1.0
+Date: 2026-07-13
 Author: JASP Team
 Website: jasp-stats.org
 Maintainer: JASP Team <info@jasp-stats.org>
-Description: Example module showing basic functionality. Use it for inspiration when creating your own module.
+Description: A JASP module providing analysis blinding (masking and scrambling) via the R package vazul, to reduce confirmation bias during confirmatory data analysis.
 License: GPL (>= 2)
 Encoding: UTF-8
 Imports:
   jaspBase,
-  jaspGraphs
+  vazul
 Suggests:
   testthat
 Remotes:
-  jasp-stats/jaspBase,
-  jasp-stats/jaspGraphs
+  jasp-stats/jaspBase

@@ -1,5 +1,3 @@
 import(jaspBase)
-export(addOne)
-export(processTable)
-export(parabola)
-export(interfaceExample)
+import(vazul)
+export(analysisBlinding)

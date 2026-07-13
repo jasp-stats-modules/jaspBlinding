@@ -1,0 +1,19 @@
+Package: jaspModuleTemplate
+Type: Package 
+Title: A module for JASP
+Version: 0.1.2
+Date: 2020-10-15
+Author: JASP Team
+Website: jasp-stats.org
+Maintainer: JASP Team <info@jasp-stats.org>
+Description: Example module showing basic functionality. Use it for inspiration when creating your own module.
+License: GPL (>= 2)
+Encoding: UTF-8
+Imports:
+  jaspBase,
+  jaspGraphs
+Suggests:
+  testthat
+Remotes:
+  jasp-stats/jaspBase,
+  jasp-stats/jaspGraphs

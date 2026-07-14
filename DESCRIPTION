@@ -11,8 +11,12 @@ License: GPL (>= 2)
 Encoding: UTF-8
 Imports:
   jaspBase,
-  vazul
+  vazul,
+  bgms,
+  MASS
 Suggests:
-  testthat
+  testthat,
+  PseudoMLE
 Remotes:
-  jasp-stats/jaspBase
+  jasp-stats/jaspBase,
+  sekulovskin/PseudoMLE

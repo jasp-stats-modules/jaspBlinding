@@ -1,3 +1,4 @@
 import(jaspBase)
 import(vazul)
+import(MASS)
 export(analysisBlinding)

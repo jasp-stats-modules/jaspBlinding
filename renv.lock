@@ -9,6 +9,25 @@
     ]
   },
   "Packages": {
+    "BH": {
+      "Package": "BH",
+      "Version": "1.90.0-1",
+      "Source": "Repository",
+      "Requirements": []
+    },
+    "MASS": {
+      "Package": "MASS",
+      "Version": "7.3-65",
+      "Source": "Repository",
+      "Requirements": [
+        "R",
+        "grDevices",
+        "graphics",
+        "stats",
+        "utils",
+        "methods"
+      ]
+    },
     "R6": {
       "Package": "R6",
       "Version": "2.6.1",
@@ -35,6 +54,38 @@
         "utils"
       ]
     },
+    "RcppArmadillo": {
+      "Package": "RcppArmadillo",
+      "Version": "15.4.0-1",
+      "Source": "Repository",
+      "Requirements": [
+        "methods",
+        "R",
+        "Rcpp",
+        "stats",
+        "utils"
+      ]
+    },
+    "RcppParallel": {
+      "Package": "RcppParallel",
+      "Version": "5.1.11-2",
+      "Source": "Repository",
+      "Requirements": [
+        "R"
+      ]
+    },
+    "Rdpack": {
+      "Package": "Rdpack",
+      "Version": "2.6.6",
+      "Source": "Repository",
+      "Requirements": [
+        "methods",
+        "R",
+        "rbibutils",
+        "tools",
+        "utils"
+      ]
+    },
     "S7": {
       "Package": "S7",
       "Version": "0.2.2",
@@ -58,6 +109,23 @@
       "Source": "Repository",
       "Requirements": [
         "R"
+      ]
+    },
+    "bgms": {
+      "Package": "bgms",
+      "Version": "0.1.6.3",
+      "Source": "Repository",
+      "Requirements": [
+        "BH",
+        "coda",
+        "dqrng",
+        "lifecycle",
+        "methods",
+        "R",
+        "Rcpp",
+        "RcppArmadillo",
+        "RcppParallel",
+        "Rdpack"
       ]
     },
     "bslib": {
@@ -108,6 +176,15 @@
       "Requirements": [
         "R",
         "utils"
+      ]
+    },
+    "coda": {
+      "Package": "coda",
+      "Version": "0.19-4.1",
+      "Source": "Repository",
+      "Requirements": [
+        "lattice",
+        "R"
       ]
     },
     "codetools": {
@@ -193,6 +270,17 @@
         "tidyselect",
         "utils",
         "vctrs"
+      ]
+    },
+    "dqrng": {
+      "Package": "dqrng",
+      "Version": "0.4.1",
+      "Source": "Repository",
+      "Requirements": [
+        "BH",
+        "R",
+        "Rcpp",
+        "sitmo"
       ]
     },
     "evaluate": {
@@ -513,6 +601,19 @@
         "rlang"
       ]
     },
+    "lattice": {
+      "Package": "lattice",
+      "Version": "0.22-9",
+      "Source": "Repository",
+      "Requirements": [
+        "graphics",
+        "grDevices",
+        "grid",
+        "R",
+        "stats",
+        "utils"
+      ]
+    },
     "lazyeval": {
       "Package": "lazyeval",
       "Version": "0.2.3",
@@ -732,6 +833,16 @@
         "R"
       ]
     },
+    "rbibutils": {
+      "Package": "rbibutils",
+      "Version": "2.4.1",
+      "Source": "Repository",
+      "Requirements": [
+        "R",
+        "tools",
+        "utils"
+      ]
+    },
     "rlang": {
       "Package": "rlang",
       "Version": "1.3.0",
@@ -804,6 +915,15 @@
         "RColorBrewer",
         "rlang",
         "viridisLite"
+      ]
+    },
+    "sitmo": {
+      "Package": "sitmo",
+      "Version": "2.0.2",
+      "Source": "Repository",
+      "Requirements": [
+        "R",
+        "Rcpp"
       ]
     },
     "stringi": {

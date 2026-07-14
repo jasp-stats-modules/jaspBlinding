@@ -8,6 +8,23 @@
 
 `%||%` <- function(a, b) if (!is.null(a)) a else b
 
+# .sanitizeExportPath ---------------------------------------------------------
+# Strips file:// prefixes, Windows /C: artefacts, and URL-encoding that the
+# save dialog may inject. Shared by .blindingSave and .decoySave.
+.sanitizeExportPath <- function(path) {
+  clean <- path
+  clean <- sub("^file://localhost", "", clean)
+  if (startsWith(clean, "file://")) {
+    clean <- substring(clean, nchar("file://") + 1L)
+  } else if (startsWith(clean, "file:/")) {
+    clean <- substring(clean, nchar("file:/") + 1L)
+  }
+  if (.Platform$OS.type == "windows" && grepl("^/[A-Za-z]:", clean))
+    clean <- substring(clean, 2L)
+  clean <- utils::URLdecode(clean)
+  normalizePath(clean, winslash = "/", mustWork = FALSE)
+}
+
 # analysisBlinding -------------------------------------------------------------
 #
 # Main entry point. The function name must match `func:` in
@@ -219,26 +236,10 @@ analysisBlinding <- function(jaspResults, dataset, options, state, ...) {
   if (missing(state) || is.null(state) || !is.environment(state))
     state <- new.env(parent = emptyenv())
 
-  # Strip file:// prefixes, Windows /C: artefacts, and URL-encoding that the
-  # save dialog may inject.
-  sanitizeExportPath <- function(path) {
-    clean <- path
-    clean <- sub("^file://localhost", "", clean)
-    if (startsWith(clean, "file://")) {
-      clean <- substring(clean, nchar("file://") + 1L)
-    } else if (startsWith(clean, "file:/")) {
-      clean <- substring(clean, nchar("file:/") + 1L)
-    }
-    if (.Platform$OS.type == "windows" && grepl("^/[A-Za-z]:", clean))
-      clean <- substring(clean, 2L)
-    clean <- utils::URLdecode(clean)
-    normalizePath(clean, winslash = "/", mustWork = FALSE)
-  }
-
   exportPath <- trimws(options$fileFull %||% state$fileFull %||% "")
   if (!nzchar(exportPath)) return()
 
-  exportPath <- sanitizeExportPath(exportPath)
+  exportPath <- .sanitizeExportPath(exportPath)
   state$fileFull     <- exportPath
   state$lastSavePath <- exportPath
 
@@ -260,10 +261,15 @@ analysisBlinding <- function(jaspResults, dataset, options, state, ...) {
   })
 
   if (!is.null(exportError)) {
-    jaspResults[["blindingExportError"]] <- createJaspHtml(
+    exportBlock <- createJaspHtml(
       title = gettext("Export error"),
       text  = paste(gettext("Failed to save blinded data:"), exportError)
     )
+    exportBlock$dependOn(c("fileFull", "variablesToBlind", "groupingVariables", "blindingMethod",
+                           "keepRowsTogether", "byRow", "sameMappingAcrossVariables",
+                           "maskPrefix", "setSeed", "seed", "showBlindedData", "rowsToShow",
+                           "maskNamesGroups"))
+    jaspResults[["blindingExportError"]] <- exportBlock
   } else {
     # Clear any stale error block from a previous run
     if (!is.null(jaspResults[["blindingExportError"]]))
@@ -350,10 +356,14 @@ analysisBlinding <- function(jaspResults, dataset, options, state, ...) {
 # not examine the data in JASP; they export the files and work elsewhere).
 .decoySummary <- function(jaspResults, decoyDatasets, options) {
   if (is.null(decoyDatasets) || length(decoyDatasets) == 0L) {
-    jaspResults[["decoySummary"]] <- createJaspHtml(
+    summary <- createJaspHtml(
       title = gettext("Decoy data"),
       text  = gettext("No datasets generated. Select variables and set options, then re-run.")
     )
+    summary$dependOn(c("variablesToBlind", "blindingMethod", "decoyRep", "decoyInsertTrueData",
+                       "decoySubsetData", "decoyRowIndices", "decoyNoClusters",
+                       "decoyDiagProb", "decoyOffDiagProb", "setSeed", "seed", "maskNamesGroups"))
+    jaspResults[["decoySummary"]] <- summary
     return()
   }
 
@@ -362,12 +372,16 @@ analysisBlinding <- function(jaspResults, dataset, options, state, ...) {
   text <- paste0(
     n, " dataset", if (n == 1L) "" else "s", " generated.\n\n",
     paste(seq_len(n), ". ", dims, sep = "", collapse = "\n"),
-    "\n\nUse \"Save blinded data\" to export each dataset as a separate CSV file."
+    "\n\nUse the \"Save as\" field to export each dataset as a separate CSV file."
   )
-  jaspResults[["decoySummary"]] <- createJaspHtml(
+  summary <- createJaspHtml(
     title = gettext("Decoy data"),
     text  = text
   )
+  summary$dependOn(c("variablesToBlind", "blindingMethod", "decoyRep", "decoyInsertTrueData",
+                     "decoySubsetData", "decoyRowIndices", "decoyNoClusters",
+                     "decoyDiagProb", "decoyOffDiagProb", "setSeed", "seed", "maskNamesGroups"))
+  jaspResults[["decoySummary"]] <- summary
 }
 
 # .decoySave -------------------------------------------------------------------
@@ -381,17 +395,7 @@ analysisBlinding <- function(jaspResults, dataset, options, state, ...) {
   basePath <- trimws(options$fileFull %||% state$fileFull %||% "")
   if (!nzchar(basePath)) return()
 
-  # Strip file:// and normalise (shared logic with .blindingSave)
-  basePath <- sub("^file://localhost", "", basePath)
-  if (startsWith(basePath, "file://")) {
-    basePath <- substring(basePath, nchar("file://") + 1L)
-  } else if (startsWith(basePath, "file:/")) {
-    basePath <- substring(basePath, nchar("file:/") + 1L)
-  }
-  if (.Platform$OS.type == "windows" && grepl("^/[A-Za-z]:", basePath))
-    basePath <- substring(basePath, 2L)
-  basePath <- utils::URLdecode(basePath)
-  basePath <- normalizePath(basePath, winslash = "/", mustWork = FALSE)
+  basePath <- .sanitizeExportPath(basePath)
 
   state$fileFull     <- basePath
   state$lastSavePath <- basePath
@@ -425,17 +429,27 @@ analysisBlinding <- function(jaspResults, dataset, options, state, ...) {
   })
 
   if (!is.null(exportError)) {
-    jaspResults[["blindingExportError"]] <- createJaspHtml(
+    exportBlock <- createJaspHtml(
       title = gettext("Export error"),
       text  = paste(gettext("Failed to save decoy datasets:"), exportError)
     )
+    exportBlock$dependOn(c("fileFull", "variablesToBlind", "blindingMethod", "decoyRep",
+                           "decoyInsertTrueData", "decoySubsetData", "decoyRowIndices",
+                           "decoyNoClusters", "decoyDiagProb", "decoyOffDiagProb",
+                           "setSeed", "seed", "maskNamesGroups"))
+    jaspResults[["blindingExportError"]] <- exportBlock
     if (!is.null(jaspResults[["decoyExportOk"]]))
       jaspResults[["decoyExportOk"]] <- NULL
   } else {
-    jaspResults[["decoyExportOk"]] <- createJaspHtml(
+    exportBlock <- createJaspHtml(
       title = gettext("Export complete"),
       text  = paste0(length(written), " files written to:\n", paste("  ", file.path(exportDir, written), collapse = "\n"))
     )
+    exportBlock$dependOn(c("fileFull", "variablesToBlind", "blindingMethod", "decoyRep",
+                           "decoyInsertTrueData", "decoySubsetData", "decoyRowIndices",
+                           "decoyNoClusters", "decoyDiagProb", "decoyOffDiagProb",
+                           "setSeed", "seed", "maskNamesGroups"))
+    jaspResults[["decoyExportOk"]] <- exportBlock
     if (!is.null(jaspResults[["blindingExportError"]]))
       jaspResults[["blindingExportError"]] <- NULL
   }

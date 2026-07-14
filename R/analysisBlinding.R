@@ -15,7 +15,7 @@
 # across runs and is used to remember the last save path (jaspSyntheticData
 # pattern).
 analysisBlinding <- function(jaspResults, dataset, options, state, ...) {
-  ready <- length(options$variablesToBlind) > 0L
+  ready <- length(options$variablesToBlind) > 0L || .hasMaskNamesGroups(options)
 
   if (isTRUE(options$setSeed) && !is.null(options$seed))
     set.seed(as.integer(options$seed))
@@ -25,30 +25,43 @@ analysisBlinding <- function(jaspResults, dataset, options, state, ...) {
   decoyDatasets <- NULL
 
   if (ready) {
-    cols   <- options$variablesToBlind
+    cols   <- options$variablesToBlind %||% character(0)
     groups <- if (length(options$groupingVariables) > 0L) options$groupingVariables else NULL
 
-    if (identical(options$blindingMethod, "masking")) {
-      isCat <- vapply(dataset[cols], function(x) is.character(x) || is.factor(x), logical(1))
-      catCols <- cols[isCat]
-      if (length(catCols) > 0L) {
-        blinded <- .maskColumns(
-          dataset, catCols,
-          prefix       = options$maskPrefix %||% "masked_group_",
-          across_vars  = isTRUE(options$sameMappingAcrossVariables)
-        )
-      }
-    } else if (isDecoy) {
-      decoyDatasets <- .decoyBlind(dataset, cols, options)
-    } else {
-      scrambleArgs <- list(data = dataset, cols = cols)
-      if (isTRUE(options$byRow)) {
-        scrambleArgs$.byrow <- TRUE
+    if (length(cols) > 0L && !isDecoy) {
+      if (identical(options$blindingMethod, "masking")) {
+        isCat <- vapply(dataset[cols], function(x) is.character(x) || is.factor(x), logical(1))
+        catCols <- cols[isCat]
+        if (length(catCols) > 0L) {
+          blinded <- .maskColumns(
+            dataset, catCols,
+            prefix       = options$maskPrefix %||% "masked_group_",
+            across_vars  = isTRUE(options$sameMappingAcrossVariables)
+          )
+        }
       } else {
-        if (isTRUE(options$keepRowsTogether)) scrambleArgs$.together <- TRUE
-        if (length(groups) > 0L)             scrambleArgs$.groups <- groups
+        scrambleArgs <- list(data = dataset, cols = cols)
+        if (isTRUE(options$byRow)) {
+          scrambleArgs$.byrow <- TRUE
+        } else {
+          if (isTRUE(options$keepRowsTogether)) scrambleArgs$.together <- TRUE
+          if (length(groups) > 0L)             scrambleArgs$.groups <- groups
+        }
+        blinded <- do.call(scramble_variables, scrambleArgs)
       }
-      blinded <- do.call(scramble_variables, scrambleArgs)
+    }
+
+    if (isDecoy && length(cols) > 0L) {
+      decoyDatasets <- .decoyBlind(dataset, cols, options)
+    }
+
+    # Apply mask_names on top of any value-level method (or on its own).
+    if (.hasMaskNamesGroups(options)) {
+      if (isDecoy && !is.null(decoyDatasets)) {
+        decoyDatasets <- lapply(decoyDatasets, .applyMaskNames, options)
+      } else {
+        blinded <- .applyMaskNames(blinded, options)
+      }
     }
   }
 
@@ -121,6 +134,41 @@ analysisBlinding <- function(jaspResults, dataset, options, state, ...) {
   result
 }
 
+# .hasMaskNamesGroups ---------------------------------------------------------
+# Checks whether the user has defined any mask_names groups with variables.
+.hasMaskNamesGroups <- function(options) {
+  groups <- options$maskNamesGroups
+  if (is.null(groups) || length(groups) == 0L) return(FALSE)
+  any(vapply(groups, function(g) {
+    vars <- g$variables
+    !is.null(vars) && length(vars) > 0L &&
+      any(nzchar(trimws(vapply(vars, function(v) v$variable %||% "", character(1)))))
+  }, logical(1)))
+}
+
+# .applyMaskNames -------------------------------------------------------------
+# Applies mask_names for each group defined in the mask variable names section.
+# Each group has a prefix and a list of variables. Groups are applied in order,
+# chained via piping (as recommended by the vazul docs).
+.applyMaskNames <- function(data, options) {
+  groups <- options$maskNamesGroups
+  if (is.null(groups) || length(groups) == 0L) return(data)
+
+  for (g in groups) {
+    prefix <- g$prefix %||% "group_"
+    if (!is.character(prefix) || !nzchar(trimws(prefix))) prefix <- "group_"
+
+    vars <- vapply(g$variables, function(v) v$variable %||% "", character(1))
+    vars <- trimws(vars)
+    vars <- vars[nzchar(vars)]
+    if (length(vars) == 0L) next
+
+    data <- mask_names(data, vars, prefix = prefix)
+  }
+
+  data
+}
+
 # .blindingTable ---------------------------------------------------------------
 #
 # Renders the (possibly blinded) dataset as a JASP table. The table is always
@@ -132,7 +180,7 @@ analysisBlinding <- function(jaspResults, dataset, options, state, ...) {
   tbl$dependOn(c("variablesToBlind", "groupingVariables", "blindingMethod",
                "keepRowsTogether", "byRow", "sameMappingAcrossVariables",
                "maskPrefix", "setSeed", "seed",
-               "showBlindedData", "rowsToShow"))
+               "showBlindedData", "rowsToShow", "maskNamesGroups"))
   tbl$showSpecifiedColumnsOnly <- TRUE
 
   # Always use string columns so JASP displays the literal values (e.g.

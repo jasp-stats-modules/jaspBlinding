@@ -29,16 +29,32 @@ Form {
         }
     }
 
-    CheckBox {
-        name: "showBlindedData"; label: qsTr("Show blinded data"); checked: true
-        info:                       qsTr("Display a preview of the blinded data table. When checked, only the specified number of rows are shown. The full dataset is always exported to CSV regardless of this setting.")
+    Group {
+        title: qsTr("Output and export")
+        info:  qsTr("Preview and save the blinded dataset.")
 
-        IntegerField {
-            name:         "rowsToShow"
-            label:        qsTr("Rows to show")
-            defaultValue: 50
-            min:          1
-            info:         qsTr("Number of rows to display in the blinded data preview.")
+        CheckBox {
+            name: "showBlindedData"; label: qsTr("Show blinded data"); checked: true
+            info:                       qsTr("Display a preview of the blinded data table. When checked, only the specified number of rows are shown. The full dataset is always exported to CSV regardless of this setting.")
+
+            IntegerField {
+                name:         "rowsToShow"
+                label:        qsTr("Rows to show")
+                defaultValue: 50
+                min:          1
+                info:         qsTr("Number of rows to display in the blinded data preview.")
+            }
+        }
+
+        FileSelector {
+            name:           "fileFull"
+            label:          qsTr("Save as…")
+            placeholderText: qsTr("blind_data.csv")
+            filter:         "*.csv"
+            save:           true
+            value:          lastSavePath
+            Layout.fillWidth: true
+            info:           qsTr("Pick a file path (type it or browse) and re-run to write the CSV. The column headers in the exported file use the original (decoded) variable names.")
         }
     }
 
@@ -159,21 +175,48 @@ Form {
     }
 
     Section {
-        title:    qsTr("Save blinded data")
+        title:    qsTr("Mask variable names")
         columns:  1
-        expanded: true
+        expanded: false
 
-        info:    qsTr("Save the blinded dataset to a CSV file. Set a file path (type it or browse) and re-run to write the file.")
+        info:    qsTr("Renames the column headers to anonymous labels (e.g. treatment_1 -> B_01). This can be used alongside any value-level blinding method, or on its own. Define one or more groups of variables, each with its own prefix.")
 
-        FileSelector {
-            name:           "fileFull"
-            label:          qsTr("Save as…")
-            placeholderText: qsTr("blind_data.csv")
-            filter:         "*.csv"
-            save:           true
-            value:          lastSavePath
-            Layout.fillWidth: true
-            info:           qsTr("Pick a file path (type it or browse) and re-run to write the CSV. The column headers in the exported file use the original (decoded) variable names.")
+        ComponentsList {
+            id:              maskNamesGroups
+            name:            "maskNamesGroups"
+            title:           qsTr("Variable name groups")
+            addItemManually: true
+            minimumItems:    0
+            info:            qsTr("Each row defines a group of variables whose names will be masked together. Add a group, type a prefix, then add the variables that belong to this group.")
+
+            rowComponent: Column {
+                spacing: 6
+
+                TextField {
+                    name:           "prefix"
+                    label:          qsTr("Prefix")
+                    defaultValue:   qsTr("group_")
+                    placeholderText: qsTr("e.g. A_")
+                    fieldWidth:     80
+                    info:           qsTr("Prefix for the masked variable names in this group. Variables will be named prefix_01, prefix_02, etc.")
+                }
+
+                ComponentsList {
+                    id:              variablesInGroup
+                    name:            "variables"
+                    title:           qsTr("Variables in group")
+                    addItemManually: true
+                    minimumItems:    1
+
+                    rowComponent: DropDown {
+                        name:              "variable"
+                        addEmptyValue:     true
+                        showVariableTypeIcon: true
+                        source:            "variablesToBlind"
+                        placeholderText:   qsTr("Select variable")
+                    }
+                }
+            }
         }
     }
 }
